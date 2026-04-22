@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { scrapeFilmsPage } from "@/lib/letterboxd";
+import { scrapeFilmsPage, type ScrapedFilm } from "@/lib/letterboxd";
 import { searchMovie } from "@/lib/tmdb";
 import { STARTING_ELO } from "@/lib/elo";
 import type { ImportStatusResponse } from "@/types/api";
@@ -64,7 +64,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
 // Returns the number of films that failed to save on this page.
 async function saveFilms(
   userId: string,
-  films: Awaited<ReturnType<typeof scrapeFilmsPage>>,
+  films: ScrapedFilm[],
   seenMovieIds: Set<string>
 ): Promise<number> {
   let errorCount = 0;
@@ -121,9 +121,18 @@ async function saveFilms(
   return errorCount;
 }
 
+async function scrapePage(username: string, pageNum: number) {
+  const result = await scrapeFilmsPage(username, pageNum);
+  // Retry once if a page we expect to have films comes back empty.
+  if (result.films.length === 0 && result.totalPages >= pageNum) {
+    console.warn(`[import] Page ${pageNum} returned 0 films, retrying…`);
+    return scrapeFilmsPage(username, pageNum);
+  }
+  return result;
+}
+
 async function runImport(userId: string, username: string) {
   try {
-    let pageNum = 1;
     let totalFilms = 0;
     let totalErrors = 0;
 
@@ -135,33 +144,30 @@ async function runImport(userId: string, username: string) {
     });
     const seenMovieIds = new Set<string>(existing.map((um) => um.movie_id));
 
-    while (true) {
-      const films = await scrapeFilmsPage(username, pageNum);
+    // Scrape page 1 first to discover totalPages from the pagination widget.
+    const firstPage = await scrapePage(username, 1);
 
-      if (films.length === 0) {
-        // No films on this page — we've gone past the last page
-        if (pageNum === 1) {
-          await prisma.user.update({
-            where: { id: userId },
-            data: { import_status: "FAILED", total_films: 0, pages_scraped: 0 },
-          });
-          return;
-        }
-        break;
-      }
-
-      totalFilms += films.length;
-
-      // Update progress after each page is scraped
+    if (firstPage.films.length === 0) {
       await prisma.user.update({
         where: { id: userId },
-        data: { pages_scraped: pageNum, total_films: totalFilms, import_errors: totalErrors },
+        data: { import_status: "FAILED", total_films: 0, pages_scraped: 0 },
       });
+      return;
+    }
 
-      // Enrich + save this page's films before moving to the next page
-      const pageErrors = await saveFilms(userId, films, seenMovieIds);
-      totalErrors += pageErrors;
+    const totalPages = firstPage.totalPages;
+    console.log(`[import] ${username}: ${totalPages} page(s) to scrape`);
 
+    // Process page 1
+    totalFilms += firstPage.films.length;
+    await prisma.user.update({
+      where: { id: userId },
+      data: { pages_scraped: 1, total_films: totalFilms, import_errors: totalErrors },
+    });
+    totalErrors += await saveFilms(userId, firstPage.films, seenMovieIds);
+
+    // Process remaining pages, using totalPages as the definitive stop condition.
+    for (let pageNum = 2; pageNum <= totalPages; pageNum++) {
       if (totalErrors > MAX_IMPORT_ERRORS) {
         console.error(`[import] Aborting: ${totalErrors} errors exceeded threshold of ${MAX_IMPORT_ERRORS}`);
         await prisma.user.update({
@@ -171,7 +177,19 @@ async function runImport(userId: string, username: string) {
         return;
       }
 
-      pageNum++;
+      const { films } = await scrapePage(username, pageNum);
+
+      if (films.length === 0) {
+        console.warn(`[import] Page ${pageNum} still empty after retry — skipping`);
+        continue;
+      }
+
+      totalFilms += films.length;
+      await prisma.user.update({
+        where: { id: userId },
+        data: { pages_scraped: pageNum, total_films: totalFilms, import_errors: totalErrors },
+      });
+      totalErrors += await saveFilms(userId, films, seenMovieIds);
     }
 
     await prisma.user.update({

@@ -6,6 +6,12 @@ export interface ScrapedFilm {
   year: number | null;
 }
 
+export interface ScrapedPage {
+  films: ScrapedFilm[];
+  // Total pages in the pagination, or 1 if no pagination is present.
+  totalPages: number;
+}
+
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
@@ -37,7 +43,7 @@ async function getBrowser(): Promise<Browser> {
 export async function scrapeFilmsPage(
   username: string,
   pageNum: number
-): Promise<ScrapedFilm[]> {
+): Promise<ScrapedPage> {
   const expectedPath = `/${username}/films/page/${pageNum}/`;
 
   // A fresh context per page is required: a shared context causes the AJAX
@@ -88,11 +94,24 @@ export async function scrapeFilmsPage(
       new Promise((r) => setTimeout(r, 18_000)),
     ]);
 
-    // If Letterboxd redirected to a different page (e.g. page 99 → page 1), stop.
+    // If Letterboxd redirected to a different page (e.g. beyond last page → page 1), stop.
     const landedPath = new URL(page.url()).pathname;
-    if (landedPath !== expectedPath) return [];
+    if (landedPath !== expectedPath) return { films: [], totalPages: 0 };
 
-    const films = await page.$$eval(LAZY_POSTER_SEL, (elements) =>
+    // Extract total pages from the pagination widget.
+    // The widget lists page numbers; the highest linked number is the last page.
+    // If there's no pagination the account fits on a single page.
+    const totalPages = await page
+      .$$eval('.paginate-pages a[href*="/page/"]', (els) => {
+        const nums = els.map((el) => {
+          const m = el.getAttribute("href")?.match(/\/page\/(\d+)\//);
+          return m ? parseInt(m[1], 10) : 0;
+        });
+        return nums.length > 0 ? Math.max(...nums) : 1;
+      })
+      .catch(() => 1);
+
+    const rawFilms = await page.$$eval(LAZY_POSTER_SEL, (elements) =>
       elements
         .map((el) => ({
           slug: el.getAttribute("data-item-slug") ?? "",
@@ -101,10 +120,12 @@ export async function scrapeFilmsPage(
         .filter((f) => f.slug && f.name)
     );
 
-    return films.map((f) => {
+    const films = rawFilms.map((f) => {
       const { title, year } = parseItemName(f.name);
       return { slug: f.slug, title, year };
     });
+
+    return { films, totalPages };
   } finally {
     await context.close();
   }

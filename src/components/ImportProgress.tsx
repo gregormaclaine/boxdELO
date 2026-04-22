@@ -60,7 +60,7 @@ export default function ImportProgress({ username }: ImportProgressProps) {
   const totalFilms = status?.total_films ?? 0;
   const enriched = status?.films_enriched ?? 0;
   const errors = status?.import_errors ?? 0;
-  const enrichProgress = totalFilms > 0 ? Math.round((enriched / totalFilms) * 100) : 0;
+  const enrichProgress = totalFilms > 0 ? Math.min(100, Math.round((enriched / totalFilms) * 100)) : 0;
 
   return (
     <div className="flex flex-col items-center gap-8 text-center max-w-xs w-full">

@@ -79,6 +79,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       loser_movie_id: loserMovieId,
       was_skipped: body.was_skipped,
       is_strong: body.strong ?? false,
+      is_manual: body.is_manual ?? false,
     },
   });
 

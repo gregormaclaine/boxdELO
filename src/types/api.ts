@@ -36,6 +36,7 @@ export interface CompareRequest {
   was_skipped: boolean;
   strong?: boolean;
   exclude_movie_id?: string;
+  is_manual?: boolean;
 }
 
 export interface CompareResponse {

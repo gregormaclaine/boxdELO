@@ -9,6 +9,7 @@ import Spinner from "@/components/ui/Spinner";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
 import ReimportButton from "@/components/ReimportButton";
+import ManualComparisonModal from "@/components/ManualComparisonModal";
 import type { RankingResponse } from "@/types/api";
 
 type View = "table" | "grid";
@@ -42,6 +43,8 @@ export default function ResultsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [view, setView] = useState<View>("table");
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [manualModalOpen, setManualModalOpen] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -58,7 +61,7 @@ export default function ResultsPage() {
       }
     }
     load();
-  }, [username]);
+  }, [username, refreshKey]);
 
   return (
     <div className="flex flex-col flex-1">
@@ -91,6 +94,11 @@ export default function ResultsPage() {
               </button>
             </div>
             <ReimportButton username={username} />
+            {data && data.ranked.length >= 2 && (
+              <Button variant="ghost" size="sm" onClick={() => setManualModalOpen(true)}>
+                Add manual comparison
+              </Button>
+            )}
             <Link href={`/${username}/rank`}>
               <Button variant="ghost" size="sm">Continue ranking →</Button>
             </Link>
@@ -139,6 +147,14 @@ export default function ResultsPage() {
           </>
         )}
       </div>
+      {manualModalOpen && data && (
+        <ManualComparisonModal
+          username={username}
+          ranked={data.ranked}
+          onClose={() => setManualModalOpen(false)}
+          onCompared={() => setRefreshKey((k) => k + 1)}
+        />
+      )}
     </div>
   );
 }

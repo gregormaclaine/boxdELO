@@ -71,6 +71,7 @@ model Comparison {
   loser_movie_id  String?
   was_skipped     Boolean  @default(false)
   is_strong       Boolean  @default(false)
+  is_manual       Boolean  @default(false)
   created_at      DateTime @default(now())
 
   user         User   @relation(fields: [user_id], references: [id], onDelete: Cascade)

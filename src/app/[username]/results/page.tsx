@@ -91,6 +91,9 @@ export default function ResultsPage() {
               </button>
             </div>
             <ReimportButton username={username} />
+            <Link href={`/${username}/graph`}>
+              <Button variant="ghost" size="sm">View graph</Button>
+            </Link>
             <Link href={`/${username}/rank`}>
               <Button variant="ghost" size="sm">Continue ranking →</Button>
             </Link>

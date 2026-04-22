@@ -10,7 +10,9 @@
     "postinstall": "npx playwright install chromium"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^3.0.0",
     "@prisma/client": "^6.19.3",
+    "@xyflow/react": "^12.10.2",
     "axios": "^1.15.2",
     "cheerio": "^1.1.0",
     "next": "16.2.4",
@@ -22,6 +24,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/cheerio": "^0.22.35",
+    "@types/dagre": "^0.7.54",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

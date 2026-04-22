@@ -32,6 +32,12 @@ export default async function UserLayout({ children, params }: UserLayoutProps) 
             >
               Results
             </Link>
+            <Link
+              href={`/${username}/graph`}
+              className="text-xs text-text-muted hover:text-text-primary transition-colors"
+            >
+              Graph
+            </Link>
           </div>
         </div>
       </header>

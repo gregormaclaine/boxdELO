@@ -16,6 +16,8 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   let winnerNewElo: number | null = null;
   let loserNewElo: number | null = null;
+  let winnerMovieId: string | null = null;
+  let loserMovieId: string | null = null;
 
   if (body.exclude_movie_id) {
     await prisma.userMovie.update({
@@ -37,6 +39,10 @@ export async function POST(req: NextRequest, { params }: Params) {
     if (!winner || !loser) {
       return NextResponse.json({ error: "Movie not found" }, { status: 404 });
     }
+
+    // The Comparison FK references Movie.id, not UserMovie.id.
+    winnerMovieId = winner.movie_id;
+    loserMovieId = loser.movie_id;
 
     const [newWinnerElo, newLoserElo] = applyComparison(
       winner.elo_score,
@@ -68,8 +74,8 @@ export async function POST(req: NextRequest, { params }: Params) {
   await prisma.comparison.create({
     data: {
       user_id: user.id,
-      winner_movie_id: body.was_skipped ? null : body.winner_movie_id,
-      loser_movie_id: body.was_skipped ? null : body.loser_movie_id,
+      winner_movie_id: winnerMovieId,
+      loser_movie_id: loserMovieId,
       was_skipped: body.was_skipped,
     },
   });

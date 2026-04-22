@@ -46,6 +46,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
     year: um.movie.year,
     poster_url: getPosterUrl(um.movie.poster_path ?? null),
     letterboxd_slug: um.movie.letterboxd_slug,
+    release_date: um.movie.release_date?.toISOString() ?? null,
     elo_score: um.elo_score,
   });
 

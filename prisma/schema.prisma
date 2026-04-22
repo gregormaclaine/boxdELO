@@ -34,6 +34,7 @@ model Movie {
   title           String
   year            Int?
   poster_path     String?
+  release_date    DateTime?
   created_at      DateTime @default(now())
 
   user_movies      UserMovie[]

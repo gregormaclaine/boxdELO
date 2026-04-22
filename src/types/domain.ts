@@ -23,6 +23,7 @@ export interface MovieSummary {
   year: number | null;
   poster_url: string | null;
   letterboxd_slug: string;
+  release_date: string | null;
 }
 
 export interface RankedMovie {

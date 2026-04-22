@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import RankingTable from "@/components/RankingTable";
 import RankingGrid from "@/components/RankingGrid";
+import ReleaseOrderGrid from "@/components/ReleaseOrderGrid";
 import ConfidenceMeter from "@/components/ConfidenceMeter";
 import Spinner from "@/components/ui/Spinner";
 import Button from "@/components/ui/Button";
@@ -12,7 +13,7 @@ import ReimportButton from "@/components/ReimportButton";
 import ManualComparisonModal from "@/components/ManualComparisonModal";
 import type { RankingResponse } from "@/types/api";
 
-type View = "table" | "grid";
+type View = "table" | "grid" | "release";
 
 function TableIcon() {
   return (
@@ -31,6 +32,17 @@ function GridIcon() {
       <rect x="9" y="1" width="6" height="6" rx="1" />
       <rect x="1" y="9" width="6" height="6" rx="1" />
       <rect x="9" y="9" width="6" height="6" rx="1" />
+    </svg>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="12" height="11" rx="1.5" />
+      <line x1="5" y1="1.5" x2="5" y2="4.5" />
+      <line x1="11" y1="1.5" x2="11" y2="4.5" />
+      <line x1="2" y1="7" x2="14" y2="7" />
     </svg>
   );
 }
@@ -92,6 +104,13 @@ export default function ResultsPage() {
               >
                 <GridIcon />
               </button>
+              <button
+                className={`px-2.5 py-1.5 transition-colors border-l border-border ${view === "release" ? "bg-bg-elevated text-text-primary" : "text-text-muted hover:text-text-primary"}`}
+                onClick={() => setView("release")}
+                title="Release order"
+              >
+                <CalendarIcon />
+              </button>
             </div>
             <ReimportButton username={username} />
             {data && data.ranked.length >= 2 && (
@@ -139,8 +158,10 @@ export default function ResultsPage() {
                 )}
                 {view === "table" ? (
                   <RankingTable ranked={data.ranked} unranked={data.unranked} />
-                ) : (
+                ) : view === "grid" ? (
                   <RankingGrid ranked={data.ranked} unranked={data.unranked} />
+                ) : (
+                  <ReleaseOrderGrid ranked={data.ranked} unranked={data.unranked} />
                 )}
               </>
             )}

@@ -20,7 +20,7 @@ interface TmdbSearchResult {
 export async function searchMovie(
   title: string,
   year: number | null
-): Promise<{ tmdb_id: number; poster_path: string | null } | null> {
+): Promise<{ tmdb_id: number; poster_path: string | null; release_date: Date | null } | null> {
   const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey) throw new Error("TMDB_API_KEY is not set");
 
@@ -47,5 +47,32 @@ export async function searchMovie(
   const first = data.results[0];
   if (!first) return null;
 
-  return { tmdb_id: first.id, poster_path: first.poster_path };
+  const release_date = first.release_date ? new Date(first.release_date) : null;
+  return { tmdb_id: first.id, poster_path: first.poster_path, release_date };
+}
+
+interface TmdbMovieDetails {
+  release_date: string;
+}
+
+export async function getMovieDetails(
+  tmdbId: number
+): Promise<{ release_date: Date | null } | null> {
+  const apiKey = process.env.TMDB_API_KEY;
+  if (!apiKey) throw new Error("TMDB_API_KEY is not set");
+
+  const url = `${TMDB_BASE}/movie/${tmdbId}?api_key=${apiKey}`;
+
+  let res: Response;
+  try {
+    res = await fetch(url);
+  } catch {
+    return null;
+  }
+
+  if (!res.ok) return null;
+
+  const data: TmdbMovieDetails = await res.json();
+  const release_date = data.release_date ? new Date(data.release_date) : null;
+  return { release_date };
 }

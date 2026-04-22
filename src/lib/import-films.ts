@@ -30,7 +30,7 @@ export async function saveFilms(
               title: film.title,
               year: film.year,
               ...(tmdbData
-                ? { tmdb_id: tmdbData.tmdb_id, poster_path: tmdbData.poster_path }
+                ? { tmdb_id: tmdbData.tmdb_id, poster_path: tmdbData.poster_path, release_date: tmdbData.release_date }
                 : {}),
             },
           });

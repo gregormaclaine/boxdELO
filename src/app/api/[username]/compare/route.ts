@@ -78,6 +78,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       winner_movie_id: winnerMovieId,
       loser_movie_id: loserMovieId,
       was_skipped: body.was_skipped,
+      is_strong: body.strong ?? false,
     },
   });
 

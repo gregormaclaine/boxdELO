@@ -1,4 +1,4 @@
-import type { ConfidenceInfo, MovieSummary, RankedMovie, UnrankedMovie, ImportStatus } from "./domain";
+import type { ConfidenceInfo, MovieSummary, RankedMovie, UnrankedMovie, ImportStatus, ReimportStatus, ScannedFilm, MissingMovie } from "./domain";
 
 export interface CreateUserRequest {
   username: string;
@@ -49,3 +49,19 @@ export interface RankingResponse {
   unranked: UnrankedMovie[];
   confidence: ConfidenceInfo;
 }
+
+export type ReimportStatusResponse =
+  | { status: "IN_PROGRESS"; pages_scraped: number; total_pages: number }
+  | { status: "COMPLETED"; new_films: ScannedFilm[]; missing_movies: MissingMovie[] }
+  | { status: "FAILED"; error: string };
+
+export interface ReimportConfirmRequest {
+  slugsToRemove: string[];
+}
+
+export interface ReimportConfirmResponse {
+  added: number;
+  removed: number;
+}
+
+export type { ReimportStatus, ScannedFilm, MissingMovie };

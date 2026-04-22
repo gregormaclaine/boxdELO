@@ -1,4 +1,21 @@
 export type ImportStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
+export type ReimportStatus = "IN_PROGRESS" | "COMPLETED" | "FAILED";
+
+export interface ScannedFilm {
+  slug: string;
+  title: string;
+  year: number | null;
+}
+
+export interface MissingMovie {
+  user_movie_id: string;
+  letterboxd_slug: string;
+  title: string;
+  year: number | null;
+  poster_url: string | null;
+  elo_score: number;
+  is_excluded: boolean;
+}
 
 export interface MovieSummary {
   id: string;

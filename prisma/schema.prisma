@@ -20,8 +20,9 @@ model User {
   import_started_at   DateTime?
   import_completed_at DateTime?
 
-  user_movies UserMovie[]
-  comparisons Comparison[]
+  user_movies      UserMovie[]
+  comparisons      Comparison[]
+  reimport_session ReimportSession?
 
   @@map("users")
 }
@@ -85,4 +86,26 @@ enum ImportStatus {
   IN_PROGRESS
   COMPLETED
   FAILED
+}
+
+enum ReimportStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model ReimportSession {
+  id            String         @id @default(cuid())
+  user_id       String         @unique
+  status        ReimportStatus @default(IN_PROGRESS)
+  scraped_films Json           @default("[]")
+  pages_scraped Int            @default(0)
+  total_pages   Int            @default(0)
+  error         String?
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("reimport_sessions")
 }

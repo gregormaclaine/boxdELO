@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String       @id @default(cuid())
+  letterboxd_username String       @unique
+  created_at          DateTime     @default(now())
+  last_active_at      DateTime     @default(now()) @updatedAt
+  total_films         Int          @default(0)
+  pages_scraped       Int          @default(0)
+  import_errors       Int          @default(0)
+  import_status       ImportStatus @default(PENDING)
+  import_started_at   DateTime?
+  import_completed_at DateTime?
+
+  user_movies UserMovie[]
+  comparisons Comparison[]
+
+  @@map("users")
+}
+
+model Movie {
+  id              String   @id @default(cuid())
+  tmdb_id         Int?     @unique
+  letterboxd_slug String   @unique
+  title           String
+  year            Int?
+  poster_path     String?
+  created_at      DateTime @default(now())
+
+  user_movies      UserMovie[]
+  won_comparisons  Comparison[] @relation("WinnerMovie")
+  lost_comparisons Comparison[] @relation("LoserMovie")
+
+  @@map("movies")
+}
+
+model UserMovie {
+  id                String    @id @default(cuid())
+  user_id           String
+  movie_id          String
+  elo_score         Float     @default(1000)
+  comparisons_count Int       @default(0)
+  wins              Int       @default(0)
+  losses            Int       @default(0)
+  is_excluded       Boolean   @default(false)
+  excluded_at       DateTime?
+  added_at          DateTime  @default(now())
+
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movie_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, movie_id])
+  @@index([user_id, elo_score])
+  @@index([user_id, is_excluded])
+  @@map("user_movies")
+}
+
+model Comparison {
+  id              String   @id @default(cuid())
+  user_id         String
+  winner_movie_id String?
+  loser_movie_id  String?
+  was_skipped     Boolean  @default(false)
+  created_at      DateTime @default(now())
+
+  user         User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  winner_movie Movie? @relation("WinnerMovie", fields: [winner_movie_id], references: [id])
+  loser_movie  Movie? @relation("LoserMovie", fields: [loser_movie_id], references: [id])
+
+  @@index([user_id, created_at])
+  @@map("comparisons")
+}
+
+enum ImportStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}

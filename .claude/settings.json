@@ -4,7 +4,10 @@
       "WebFetch(domain:letterboxd.com)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:api-docs.letterboxd.com)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(npm install *)",
+      "Bash(npx prisma *)",
+      "Bash(npx tsc *)"
     ]
   }
 }

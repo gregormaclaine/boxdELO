@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Movie Ranker",
+  title: "boxdELO",
   description: "Rank your Letterboxd films with ELO matchups",
 };
 

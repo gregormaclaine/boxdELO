@@ -13,7 +13,7 @@ export default async function UserLayout({ children, params }: UserLayoutProps) 
       <header className="border-b border-border">
         <div className="max-w-3xl mx-auto px-4 h-12 flex items-center justify-between">
           <Link href="/" className="text-sm font-semibold text-text-primary hover:text-accent transition-colors">
-            Movie Ranker
+            boxdELO
           </Link>
 
           <div className="flex items-center gap-4">

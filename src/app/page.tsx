@@ -6,7 +6,7 @@ export default function LandingPage() {
       <div className="w-full max-w-md flex flex-col gap-8">
         <div className="flex flex-col gap-3">
           <h1 className="text-4xl font-bold tracking-tight text-text-primary">
-            Movie Ranker
+            boxdELO
           </h1>
           <p className="text-text-muted text-base leading-relaxed">
             Enter your Letterboxd username to import your watched films and build

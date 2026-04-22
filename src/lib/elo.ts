@@ -8,18 +8,20 @@ function expectedScore(playerElo: number, opponentElo: number): number {
   return 1 / (1 + Math.pow(10, (opponentElo - playerElo) / SPREAD));
 }
 
-function calcNewElo(currentElo: number, actual: 0 | 1, opponentElo: number): number {
+function calcNewElo(currentElo: number, actual: number, opponentElo: number, k: number): number {
   const expected = expectedScore(currentElo, opponentElo);
-  return Math.round((currentElo + K * (actual - expected)) * 10) / 10;
+  return Math.round((currentElo + k * (actual - expected)) * 10) / 10;
 }
 
 export function applyComparison(
   winnerElo: number,
-  loserElo: number
+  loserElo: number,
+  strong = false,
 ): [number, number] {
+  const k = strong ? K * 2 : K;
   return [
-    calcNewElo(winnerElo, 1, loserElo),
-    calcNewElo(loserElo, 0, winnerElo),
+    calcNewElo(winnerElo, 1, loserElo, k),
+    calcNewElo(loserElo, 0, winnerElo, k),
   ];
 }
 

@@ -34,6 +34,7 @@ export interface CompareRequest {
   winner_movie_id: string | null;
   loser_movie_id: string | null;
   was_skipped: boolean;
+  strong?: boolean;
   exclude_movie_id?: string;
 }
 

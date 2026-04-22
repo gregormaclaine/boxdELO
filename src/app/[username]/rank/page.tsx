@@ -83,11 +83,12 @@ export default function RankPage() {
     }
   }
 
-  function handlePick(winnerId: string, loserId: string) {
+  function handlePick(winnerId: string, loserId: string, strong: boolean) {
     submitComparison({
       winner_movie_id: winnerId,
       loser_movie_id: loserId,
       was_skipped: false,
+      strong,
     });
   }
 

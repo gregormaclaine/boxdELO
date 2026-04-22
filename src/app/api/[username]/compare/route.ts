@@ -46,7 +46,8 @@ export async function POST(req: NextRequest, { params }: Params) {
 
     const [newWinnerElo, newLoserElo] = applyComparison(
       winner.elo_score,
-      loser.elo_score
+      loser.elo_score,
+      body.strong ?? false,
     );
     winnerNewElo = newWinnerElo;
     loserNewElo = newLoserElo;

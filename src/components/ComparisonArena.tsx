@@ -7,7 +7,7 @@ import type { PairResponse } from "@/types/api";
 
 interface ComparisonArenaProps {
   pair: PairResponse;
-  onPick: (winnerId: string, loserId: string) => void;
+  onPick: (winnerId: string, loserId: string, strong: boolean) => void;
   onSkip: () => void;
   onExclude: (userMovieId: string) => void;
   disabled?: boolean;
@@ -27,21 +27,31 @@ export default function ComparisonArena({
     <div className="flex flex-col items-center gap-8">
       {/* Movie cards */}
       <div className="flex items-center gap-6 sm:gap-10">
-        <MovieCard
-          movie={movieA}
-          variant="comparison"
-          onClick={disabled ? undefined : () => onPick(movieA.user_movie_id, movieB.user_movie_id)}
-        />
+        <div className="flex flex-col items-center gap-2">
+          <MovieCard
+            movie={movieA}
+            variant="comparison"
+            onClick={disabled ? undefined : () => onPick(movieA.user_movie_id, movieB.user_movie_id, false)}
+          />
+          <Button variant="ghost" size="sm" disabled={disabled} onClick={() => onPick(movieA.user_movie_id, movieB.user_movie_id, true)}>
+            Way better
+          </Button>
+        </div>
 
         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-bg-elevated border border-border flex items-center justify-center">
           <span className="text-xs font-bold text-text-muted tracking-widest">VS</span>
         </div>
 
-        <MovieCard
-          movie={movieB}
-          variant="comparison"
-          onClick={disabled ? undefined : () => onPick(movieB.user_movie_id, movieA.user_movie_id)}
-        />
+        <div className="flex flex-col items-center gap-2">
+          <MovieCard
+            movie={movieB}
+            variant="comparison"
+            onClick={disabled ? undefined : () => onPick(movieB.user_movie_id, movieA.user_movie_id, false)}
+          />
+          <Button variant="ghost" size="sm" disabled={disabled} onClick={() => onPick(movieB.user_movie_id, movieA.user_movie_id, true)}>
+            Way better
+          </Button>
+        </div>
       </div>
 
       {/* Controls */}
@@ -60,7 +70,7 @@ export default function ComparisonArena({
           </button>
 
           {excludeOpen && (
-            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-bg-surface border border-border rounded-md shadow-xl shadow-black/40 min-w-[200px] overflow-hidden z-10">
+            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-bg-surface border border-border rounded-md shadow-xl shadow-black/40 min-w-50 overflow-hidden z-10">
               <p className="px-3 py-2 text-xs text-text-muted border-b border-border">
                 Move to unranked:
               </p>

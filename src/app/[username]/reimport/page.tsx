@@ -56,18 +56,14 @@ export default function ReimportPage() {
     return () => clearInterval(interval);
   }, [phase.name, username]);
 
-  async function handleConfirm(newFilms: ScannedFilm[]) {
+  async function handleConfirm() {
     setPhase({ name: "applying" });
     await fetch(`/api/${username}/reimport/confirm`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ slugsToRemove: Array.from(toRemove) }),
     });
-    if (newFilms.length > 0) {
-      router.push(`/${username}/import`);
-    } else {
-      router.push(`/${username}/results`);
-    }
+    router.push(`/${username}/results`);
   }
 
   function toggleRemove(slug: string) {
@@ -278,7 +274,7 @@ export default function ReimportPage() {
               )}
 
               <div className="flex justify-end">
-                <Button onClick={() => handleConfirm(newFilms)}>
+                <Button onClick={handleConfirm}>
                   {confirmLabel()}
                 </Button>
               </div>

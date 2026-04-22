@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:letterboxd.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:api-docs.letterboxd.com)",
+      "WebSearch"
+    ]
+  }
+}

@@ -3,12 +3,36 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import RankingTable from "@/components/RankingTable";
+import RankingGrid from "@/components/RankingGrid";
 import ConfidenceMeter from "@/components/ConfidenceMeter";
 import Spinner from "@/components/ui/Spinner";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
 import ReimportButton from "@/components/ReimportButton";
 import type { RankingResponse } from "@/types/api";
+
+type View = "table" | "grid";
+
+function TableIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <line x1="2" y1="4" x2="14" y2="4" />
+      <line x1="2" y1="8" x2="14" y2="8" />
+      <line x1="2" y1="12" x2="14" y2="12" />
+    </svg>
+  );
+}
+
+function GridIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+      <rect x="1" y="1" width="6" height="6" rx="1" />
+      <rect x="9" y="1" width="6" height="6" rx="1" />
+      <rect x="1" y="9" width="6" height="6" rx="1" />
+      <rect x="9" y="9" width="6" height="6" rx="1" />
+    </svg>
+  );
+}
 
 export default function ResultsPage() {
   const params = useParams();
@@ -17,6 +41,7 @@ export default function ResultsPage() {
   const [data, setData] = useState<RankingResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [view, setView] = useState<View>("table");
 
   useEffect(() => {
     async function load() {
@@ -49,6 +74,22 @@ export default function ResultsPage() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl font-bold tracking-tight">Your Ranking</h1>
           <div className="flex items-center gap-2">
+            <div className="flex items-center border border-border rounded-md overflow-hidden">
+              <button
+                className={`px-2.5 py-1.5 transition-colors ${view === "table" ? "bg-bg-elevated text-text-primary" : "text-text-muted hover:text-text-primary"}`}
+                onClick={() => setView("table")}
+                title="Table view"
+              >
+                <TableIcon />
+              </button>
+              <button
+                className={`px-2.5 py-1.5 transition-colors border-l border-border ${view === "grid" ? "bg-bg-elevated text-text-primary" : "text-text-muted hover:text-text-primary"}`}
+                onClick={() => setView("grid")}
+                title="Grid view"
+              >
+                <GridIcon />
+              </button>
+            </div>
             <ReimportButton username={username} />
             <Link href={`/${username}/rank`}>
               <Button variant="ghost" size="sm">Continue ranking →</Button>
@@ -88,7 +129,11 @@ export default function ResultsPage() {
                     </p>
                   </div>
                 )}
-                <RankingTable ranked={data.ranked} unranked={data.unranked} />
+                {view === "table" ? (
+                  <RankingTable ranked={data.ranked} unranked={data.unranked} />
+                ) : (
+                  <RankingGrid ranked={data.ranked} unranked={data.unranked} />
+                )}
               </>
             )}
           </>

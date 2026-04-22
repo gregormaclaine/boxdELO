@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import StarBadge from "./StarBadge";
 import type { RankedMovie, UnrankedMovie } from "@/types/domain";
@@ -22,6 +25,8 @@ function PosterThumb({ url, title }: { url: string | null; title: string }) {
 }
 
 export default function RankingTable({ ranked, unranked }: RankingTableProps) {
+  const [unrankedOpen, setUnrankedOpen] = useState(false);
+
   return (
     <div className="w-full">
       {/* Ranked list */}
@@ -50,9 +55,14 @@ export default function RankingTable({ ranked, unranked }: RankingTableProps) {
               {item.suggested_stars !== null && (
                 <StarBadge stars={item.suggested_stars} />
               )}
-              <span className="text-xs text-text-muted tabular-nums hidden sm:block">
-                {item.comparisons_count}×
-              </span>
+              <div className="hidden sm:flex flex-col items-end gap-0.5">
+                <span className="text-xs text-text-muted tabular-nums">
+                  {Math.round(item.elo_score)} ELO
+                </span>
+                <span className="text-xs text-text-muted/60 tabular-nums">
+                  {item.comparisons_count} comparisons
+                </span>
+              </div>
             </div>
           </div>
         ))}
@@ -61,31 +71,37 @@ export default function RankingTable({ ranked, unranked }: RankingTableProps) {
       {/* Unranked section */}
       {unranked.length > 0 && (
         <div className="mt-6">
-          <div className="flex items-center gap-3 mb-3">
+          <button
+            className="flex items-center gap-3 w-full group"
+            onClick={() => setUnrankedOpen((o) => !o)}
+          >
             <div className="h-px flex-1 bg-border" />
-            <span className="text-xs font-semibold text-text-muted uppercase tracking-widest px-2">
-              Unranked
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-text-muted uppercase tracking-widest px-2 group-hover:text-text-primary transition-colors">
+              {unranked.length} Unranked
+              <span className="text-text-muted/60">{unrankedOpen ? "▴" : "▾"}</span>
             </span>
             <div className="h-px flex-1 bg-border" />
-          </div>
+          </button>
 
-          <div className="divide-y divide-border">
-            {unranked.map((item) => (
-              <div
-                key={item.user_movie_id}
-                className="flex items-center gap-3 py-2.5 px-1"
-              >
-                <span className="w-7 flex-shrink-0" />
-                <PosterThumb url={item.movie.poster_url} title={item.movie.title} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-text-muted truncate">{item.movie.title}</p>
-                  {item.movie.year && (
-                    <p className="text-xs text-text-muted/60">{item.movie.year}</p>
-                  )}
+          {unrankedOpen && (
+            <div className="divide-y divide-border mt-3">
+              {unranked.map((item) => (
+                <div
+                  key={item.user_movie_id}
+                  className="flex items-center gap-3 py-2.5 px-1"
+                >
+                  <span className="w-7 flex-shrink-0" />
+                  <PosterThumb url={item.movie.poster_url} title={item.movie.title} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-text-muted truncate">{item.movie.title}</p>
+                    {item.movie.year && (
+                      <p className="text-xs text-text-muted/60">{item.movie.year}</p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

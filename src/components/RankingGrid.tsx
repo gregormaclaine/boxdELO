@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import type { RankedMovie, UnrankedMovie } from "@/types/domain";
+import { starsToLabel } from "@/lib/stars";
 
 interface RankingGridProps {
   ranked: RankedMovie[];
@@ -52,25 +53,70 @@ function PosterCell({
   );
 }
 
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 w-full">
+      <div className="h-px flex-1 bg-border" />
+      <span className="text-sm font-semibold text-accent tracking-tight px-2">{label}</span>
+      <div className="h-px flex-1 bg-border" />
+    </div>
+  );
+}
+
 export default function RankingGrid({ ranked, unranked }: RankingGridProps) {
   const [unrankedOpen, setUnrankedOpen] = useState(false);
 
+  const hasStarRatings = ranked.some((m) => m.suggested_stars !== null);
+
+  const groupedByStars = hasStarRatings
+    ? (() => {
+        const map = new Map<number, RankedMovie[]>();
+        for (const movie of ranked) {
+          if (movie.suggested_stars !== null) {
+            const group = map.get(movie.suggested_stars) ?? [];
+            group.push(movie);
+            map.set(movie.suggested_stars, group);
+          }
+        }
+        return Array.from(map.entries()).sort(([a], [b]) => b - a);
+      })()
+    : null;
+
   return (
-    <div className="w-full">
-      <div className="grid grid-cols-12 gap-1.5">
-        {ranked.map((item) => (
-          <PosterCell
-            key={item.user_movie_id}
-            url={item.movie.poster_url}
-            title={item.movie.title}
-            year={item.movie.year}
-            rank={item.rank}
-          />
-        ))}
-      </div>
+    <div className="w-full space-y-4">
+      {groupedByStars ? (
+        groupedByStars.map(([stars, movies]) => (
+          <div key={stars}>
+            <SectionDivider label={starsToLabel(stars)} />
+            <div className="grid grid-cols-12 gap-1.5 mt-3">
+              {movies.map((item) => (
+                <PosterCell
+                  key={item.user_movie_id}
+                  url={item.movie.poster_url}
+                  title={item.movie.title}
+                  year={item.movie.year}
+                  rank={item.rank}
+                />
+              ))}
+            </div>
+          </div>
+        ))
+      ) : (
+        <div className="grid grid-cols-12 gap-1.5">
+          {ranked.map((item) => (
+            <PosterCell
+              key={item.user_movie_id}
+              url={item.movie.poster_url}
+              title={item.movie.title}
+              year={item.movie.year}
+              rank={item.rank}
+            />
+          ))}
+        </div>
+      )}
 
       {unranked.length > 0 && (
-        <div className="mt-6">
+        <div>
           <button
             className="flex items-center gap-3 w-full group"
             onClick={() => setUnrankedOpen((o) => !o)}

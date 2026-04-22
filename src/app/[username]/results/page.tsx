@@ -7,6 +7,7 @@ import ConfidenceMeter from "@/components/ConfidenceMeter";
 import Spinner from "@/components/ui/Spinner";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
+import ReimportButton from "@/components/ReimportButton";
 import type { RankingResponse } from "@/types/api";
 
 export default function ResultsPage() {
@@ -47,9 +48,12 @@ export default function ResultsPage() {
       <div className="max-w-3xl mx-auto w-full px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl font-bold tracking-tight">Your Ranking</h1>
-          <Link href={`/${username}/rank`}>
-            <Button variant="ghost" size="sm">Continue ranking →</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <ReimportButton username={username} />
+            <Link href={`/${username}/rank`}>
+              <Button variant="ghost" size="sm">Continue ranking →</Button>
+            </Link>
+          </div>
         </div>
 
         {loading && (

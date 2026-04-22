@@ -7,6 +7,7 @@ import ConfidenceMeter from "@/components/ConfidenceMeter";
 import Spinner from "@/components/ui/Spinner";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
+import ReimportButton from "@/components/ReimportButton";
 import type { PairResponse, CompareRequest, ImportStatusResponse } from "@/types/api";
 import type { ConfidenceInfo } from "@/types/domain";
 
@@ -115,12 +116,15 @@ export default function RankPage() {
           <div className="max-w-3xl mx-auto flex flex-col gap-2">
             <ConfidenceMeter confidence={confidence} />
             {importInfo && importInfo.total > 0 && (
-              <p className="text-xs text-text-muted">
-                {importInfo.total} films scanned
-                {importInfo.completedAt && (
-                  <> &middot; imported {formatDate(importInfo.completedAt)}</>
-                )}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-text-muted">
+                  {importInfo.total} films scanned
+                  {importInfo.completedAt && (
+                    <> &middot; imported {formatDate(importInfo.completedAt)}</>
+                  )}
+                </p>
+                <ReimportButton username={username} />
+              </div>
             )}
           </div>
         </div>

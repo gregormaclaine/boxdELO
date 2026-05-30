@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import type { RankedMovie, UnrankedMovie } from "@/types/domain";
-import { starsToLabel } from "@/lib/stars";
+import { starsToLabel, applyBoundaries, type StarBoundaries } from "@/lib/stars";
 
 interface RankingGridProps {
   ranked: RankedMovie[];
   unranked: UnrankedMovie[];
+  boundaries?: StarBoundaries;
+  onEditBoundaries?: () => void;
+  onResetBoundaries?: () => void;
+  isCustomized?: boolean;
 }
 
 function PosterCell({
@@ -24,7 +28,7 @@ function PosterCell({
   dimmed?: boolean;
 }) {
   return (
-    <div className={`relative group aspect-[2/3] ${dimmed ? "opacity-40" : ""}`}>
+    <div className={`relative group aspect-2/3 ${dimmed ? "opacity-40" : ""}`}>
       <div className="relative w-full h-full rounded overflow-hidden bg-bg-elevated">
         {url ? (
           <Image src={url} alt={title} fill className="object-cover" sizes="80px" />
@@ -53,29 +57,69 @@ function PosterCell({
   );
 }
 
-function SectionDivider({ label }: { label: string }) {
+function SectionDivider({ label, onEdit, onReset }: { label: string; onEdit?: () => void; onReset?: () => void }) {
   return (
-    <div className="flex items-center gap-3 w-full">
+    <div className="flex items-center gap-3 w-full group/section">
       <div className="h-px flex-1 bg-border" />
       <span className="text-sm font-semibold text-accent tracking-tight px-2">{label}</span>
       <div className="h-px flex-1 bg-border" />
+      {onReset && (
+        <button
+          onClick={onReset}
+          className="opacity-0 group-hover/section:opacity-100 transition-opacity text-[10px] text-text-muted hover:text-text-primary shrink-0"
+          title="Reset to auto boundaries"
+        >
+          reset
+        </button>
+      )}
+      {onEdit && (
+        <button
+          onClick={onEdit}
+          className="opacity-0 group-hover/section:opacity-100 transition-opacity text-[10px] text-text-muted hover:text-text-primary flex items-center gap-1 shrink-0"
+          title="Edit star boundaries"
+        >
+          <PencilIcon />
+          edit
+        </button>
+      )}
     </div>
   );
 }
 
-export default function RankingGrid({ ranked, unranked }: RankingGridProps) {
+function PencilIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8.5 1.5L10.5 3.5L4 10H2V8L8.5 1.5Z" />
+    </svg>
+  );
+}
+
+export default function RankingGrid({ ranked, unranked, boundaries, onEditBoundaries, onResetBoundaries, isCustomized }: RankingGridProps) {
   const [unrankedOpen, setUnrankedOpen] = useState(false);
 
-  const hasStarRatings = ranked.some((m) => m.suggested_stars !== null);
+  const effectiveStars = useMemo(() => {
+    if (!boundaries || boundaries.length === 0) return null;
+    return applyBoundaries(ranked, boundaries);
+  }, [ranked, boundaries]);
+
+  const getStars = (movie: RankedMovie): number | null => {
+    if (effectiveStars) return effectiveStars.get(movie.user_movie_id) ?? null;
+    return movie.suggested_stars;
+  };
+
+  const hasStarRatings = effectiveStars
+    ? true
+    : ranked.some((m) => m.suggested_stars !== null);
 
   const groupedByStars = hasStarRatings
     ? (() => {
         const map = new Map<number, RankedMovie[]>();
         for (const movie of ranked) {
-          if (movie.suggested_stars !== null) {
-            const group = map.get(movie.suggested_stars) ?? [];
+          const stars = getStars(movie);
+          if (stars !== null) {
+            const group = map.get(stars) ?? [];
             group.push(movie);
-            map.set(movie.suggested_stars, group);
+            map.set(stars, group);
           }
         }
         return Array.from(map.entries()).sort(([a], [b]) => b - a);
@@ -85,9 +129,13 @@ export default function RankingGrid({ ranked, unranked }: RankingGridProps) {
   return (
     <div className="w-full space-y-4">
       {groupedByStars ? (
-        groupedByStars.map(([stars, movies]) => (
+        groupedByStars.map(([stars, movies], i) => (
           <div key={stars}>
-            <SectionDivider label={starsToLabel(stars)} />
+            <SectionDivider
+              label={starsToLabel(stars)}
+              onEdit={i === 0 ? onEditBoundaries : undefined}
+              onReset={i === 0 && isCustomized ? onResetBoundaries : undefined}
+            />
             <div className="grid grid-cols-12 gap-1.5 mt-3">
               {movies.map((item) => (
                 <PosterCell
